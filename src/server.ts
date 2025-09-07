@@ -3,6 +3,7 @@ import { Server } from 'http'
 import mongoose from "mongoose";
 import app from './app';
 import { envVars } from './app/config/env';
+import { seedSuperAdmin } from './app/utils/seedSuperAdmin';
 
  let server: Server;
 
@@ -20,10 +21,15 @@ import { envVars } from './app/config/env';
   }
  }
 
- startServer();
+
+
+ (async () => {
+    await startServer();
+    await seedSuperAdmin();
+ })()
 
  process.on("SIGTERM", () => {
-    console.log("SIGTERM signal recieved... Server shutting down..");
+    console.log("SIGTERM signal received... Server shutting down..");
 
     if (server) {
         server.close(() => {
@@ -35,7 +41,7 @@ import { envVars } from './app/config/env';
 })
 
 process.on("SIGINT", () => {
-    console.log("SIGINT signal recieved... Server shutting down..");
+    console.log("SIGINT signal received... Server shutting down..");
 
     if (server) {
         server.close(() => {
@@ -48,7 +54,7 @@ process.on("SIGINT", () => {
 
 
 process.on("unhandledRejection", (err) => {
-    console.log("Unhandled Rejecttion detected... Server shutting down..", err);
+    console.log("Unhandled Rejection detected... Server shutting down..", err);
 
     if (server) {
         server.close(() => {
