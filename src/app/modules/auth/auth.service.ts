@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import bcryptjs from "bcryptjs";
 import httpStatus from "http-status-codes";
 // import { envVars } from "../../config/env";
@@ -6,6 +7,8 @@ import { IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 // import { generateToken } from "../../utils/jwt";
 import { createNewAccessTokenWithRefreshToken, createUserTokens } from "../../utils/userTokens";
+import { JwtPayload } from "jsonwebtoken";
+import { envVars } from "../../config/env";
 // import { verifyToken } from "../../utils/jwt";
 // import { envVars } from "../../config/env";
 // import { JwtPayload } from "jsonwebtoken";
@@ -63,9 +66,26 @@ const getNewAccessToken = async (refreshToken: string) => {
 
 }
 
+const resetPassword = async (oldPassword: string, newPassword: string, decodedToken: JwtPayload) => {
+
+    const user = await User.findById(decodedToken.userId)
+
+    const isOldPasswordMatch = await bcryptjs.compare(oldPassword, user!.password as string)
+    if (!isOldPasswordMatch) {
+        throw new AppError(httpStatus.UNAUTHORIZED, "Old Password does not match");
+    }
+
+    user!.password = await bcryptjs.hash(newPassword, Number(envVars.BCRYPT_SALT_ROUND))
+
+    user!.save();
+
+
+}
+
 //user - login - token (email, role, _id) - booking / payment / booking / payment cancel - token
 
 export const AuthServices = {
     credentialsLogin,
-    getNewAccessToken
+    getNewAccessToken,
+    resetPassword
 }
